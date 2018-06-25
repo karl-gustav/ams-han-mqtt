@@ -1,0 +1,12 @@
+[Unit]
+Description=ams-han-mqtt
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/ams-han-mqtt/
+ExecStart=/srv/ams-han-mqtt/ams-han-mqtt -a /dev/ttyUSB.MBUS -p E
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

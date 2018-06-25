@@ -55,9 +55,8 @@ func main() {
 
 	mqtt := setupMqtt(mqttUrl)
 
+	var usageCounter int
 	for message := range messages {
-		s, _ := json.Marshal(message)
-		fmt.Println(string(s))
 		switch item := message.(type) {
 		case *ams.ThreeFasesMessageType2:
 			mqtt <- marshalCommand(UpdateDevice{
@@ -72,13 +71,16 @@ func main() {
 				Nvalue:  0,
 				Svalue:  fmt.Sprintf("%.3f", (float64(item.VoltL1+item.VoltL2+item.VoltL3))/30),
 			})
+			if usageCounter != 0 {
+				mqtt <- marshalCommand(UpdateDevice{
+					Command: "udevice",
+					Idx:     usageSensorIdx,
+					Nvalue:  0,
+					Svalue:  fmt.Sprintf("%.1f;%d", float64(item.CurrL1)/divider, usageCounter),
+				})
+			}
 		case *ams.ThreeFasesMessageType3:
-			mqtt <- marshalCommand(UpdateDevice{
-				Command: "udevice",
-				Idx:     usageSensorIdx,
-				Nvalue:  0,
-				Svalue:  fmt.Sprintf("%.1f;%d", float64(item.ActPowPos)/divider, item.ActEnergyPa),
-			})
+			usageCounter = item.ActEnergyPa
 		}
 	}
 }
