@@ -76,11 +76,16 @@ func main() {
 					Command: "udevice",
 					Idx:     usageSensorIdx,
 					Nvalue:  0,
-					Svalue:  fmt.Sprintf("%.1f;%d", float64(item.CurrL1)/divider, usageCounter),
+					Svalue:  fmt.Sprintf("%d;%d", item.ActPowPos, usageCounter),
 				})
 			}
 		case *ams.ThreeFasesMessageType3:
 			usageCounter = item.ActEnergyPa
+		}
+
+		if verbose {
+			j, _ := json.Marshal(message)
+			fmt.Printf("%s\n", j)
 		}
 	}
 }
