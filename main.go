@@ -43,20 +43,31 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "verbose output")
 	flag.Parse()
 
-	serialPort := getSerialPort(address, baudrate, databits, stopbits, parity)
-	byteStream := createByteStream(serialPort)
-	bytePackages, errors := ams.ByteReader(byteStream)
-	printErrorStream(errors)
-	if verbose {
-		bytePackages = channelLogger(bytePackages)
-	}
-	messages, errors := ams.ByteParser(bytePackages)
-	printErrorStream(errors)
-
 	mqtt := setupMqtt(mqttUrl)
 
+	serialPort := getSerialPort(address, baudrate, databits, stopbits, parity)
+	byteStream := createByteStream(serialPort)
+	next := ams.ByteReader(byteStream)
+
 	var usageCounter int
-	for message := range messages {
+	for {
+		bytePackage, err := next()
+		if err != nil {
+			fmt.Println("[ERROR]", err)
+			if err == ams.CHANNEL_IS_CLOSED_ERROR {
+				panic(err)
+			}
+			continue
+		}
+
+		if verbose {
+			fmt.Printf("\nBuffer(%d): \n[%s]\n", len(bytePackage), strings.Join(byteArrayToHexStringArray(bytePackage), ","))
+		}
+		message, err := ams.BytesParser(bytePackage)
+		if err != nil {
+			fmt.Println("[ERROR]", err)
+			continue
+		}
 		switch item := message.(type) {
 		case *ams.ThreeFasesMessageType2:
 			mqtt <- marshalCommand(UpdateDevice{
@@ -179,26 +190,6 @@ func createByteStream(port serial.Port) chan byte {
 		}
 	}()
 	return serialChannel
-}
-
-func channelLogger(in chan []byte) chan []byte {
-	out := make(chan []byte)
-	go func() {
-		for bytes := range in {
-			fmt.Printf("\nBuffer(%d): \n[%s]\n", len(bytes), strings.Join(byteArrayToHexStringArray(bytes), ","))
-			out <- bytes
-		}
-		close(out)
-	}()
-	return out
-}
-
-func printErrorStream(errors chan error) {
-	go func() {
-		for err := range errors {
-			fmt.Println("[ERROR]", err)
-		}
-	}()
 }
 
 func byteArrayToHexStringArray(bytes []byte) (strings []string) {
