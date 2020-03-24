@@ -9,10 +9,10 @@ CMD="tar xzf - -C /srv/ams-han-mqtt/\
     && mv /srv/ams-han-mqtt/ams-han-mqtt{,.old} || true \
  && mv /srv/ams-han-mqtt/ams-han-mqtt{.new,} \
  && echo Restarting service \
- && systemctl daemon-reload \
- && service ams-han-mqtt restart \
+ && sudo systemctl daemon-reload \
+ && sudo service ams-han-mqtt restart \
  && echo Checking status \
- && service ams-han-mqtt status \
+ && sudo service ams-han-mqtt status \
 "
 
 echo 'Running command on "'${SERVER}'":' $CMD
