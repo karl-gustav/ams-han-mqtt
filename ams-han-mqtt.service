@@ -4,7 +4,7 @@ Description=ams-han-mqtt
 [Service]
 Type=simple
 WorkingDirectory=/srv/ams-han-mqtt/
-ExecStart=/srv/ams-han-mqtt/ams-han-mqtt -a /dev/ttyUSB.MBUS -p E
+ExecStart=/srv/ams-han-mqtt/ams-han-mqtt -a /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907T1PY-if00-port0 -p E
 Restart=always
 RestartSec=30
 
