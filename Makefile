@@ -1,7 +1,7 @@
 test::
 	go test ./...
 build::
-	./build.sh
+	GOOS=linux GOARCH=arm GOARM=6 go build -o ams-han-mqtt.new
 deploy:: build
 	./deploy.sh
 setup::
